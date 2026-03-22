@@ -5,14 +5,71 @@ import unicodedata
 prolog = Prolog()
 prolog.consult("regras.pl")
 
-disciplinas = {
-    "calculo1": "Cálculo 1",
-    "calculo2": "Cálculo 2",
-    "calculo3": "Cálculo 3",
-    "programacao1": "Programação 1",
-    "estrutura_dados": "Estrutura de Dados",
-    "ia": "Inteligência Artificial"
+disciplinas_por_periodo = {
+    1: {
+        "calculo_diferencial_e_integral_1": "Cálculo Diferencial e Integral 1",
+        "calculo_vetorial_e_geometria_analitica": "Cálculo Vetorial e Geometria Analítica",
+        "matematica_discreta": "Matemática Discreta",
+        "introducao_a_ciencia_da_computacao": "Introdução à Ciência da Computação",
+        "introducao_a_programacao": "Introdução à Programação",
+        "metodologia_do_trabalho_cientifico_para_ciencia_da_computacao": "Metodologia do Trab. Científico",
+        "pesquisa_aplicada_a_ciencia_da_computacao": "Pesquisa Aplicada à Ciência da Computação"
+    },
+    2: {
+        "calculo_diferencial_e_integral_2": "Cálculo Diferencial e Integral 2",
+        "introducao_a_algebra_linear": "Introdução à Álgebra Linear",
+        "logica_aplicada_a_computacao": "Lógica Aplicada à Computação",
+        "arquitetura_de_computadores_1": "Arquitetura de Computadores 1",
+        "programacao_orientada_a_objetos": "Programação Orientada a Objetos"
+    },
+    3: {
+        "calculo_numerico": "Cálculo Numérico",
+        "calculo_das_probabilidades_e_estatistica_1": "Cálculo das Probab. e Estatística I",
+        "linguagens_formais_e_computabilidade": "Linguagens Formais e Computabilidade",
+        "arquitetura_de_computadores_2": "Arquitetura de Computadores 2",
+        "estruturas_de_dados_e_algoritmos_1": "Estruturas de Dados e Algoritmos 1",
+        "programacao_funcional": "Programação Funcional"
+    },
+    4: {
+        "introducao_a_inteligencia_artificial": "Introdução à Inteligência Artificial",
+        "redes_de_computadores_1": "Redes de Computadores 1",
+        "introducao_ao_processamento_digital_de_imagens": "Introd. ao Proc. Digital de Imagens",
+        "sistemas_operacionais_1": "Sistemas Operacionais 1",
+        "estruturas_de_dados_e_algoritmos_2": "Estruturas de Dados e Algoritmos 2",
+        "engenharia_de_software": "Engenharia de Software"
+    },
+    5: {
+        "sistemas_baseados_em_conhecimento": "Sistemas Baseados em Conhecimento",
+        "analise_e_projeto_de_algoritmos": "Análise e Projeto de Algoritmos",
+        "paradigmas_de_linguagens_de_programacao": "Paradigmas de Ling. de Programação",
+        "programacao_concorrente_e_distribuida": "Prog. Concorrente e Distribuída",
+        "banco_de_dados_1": "Banco de Dados 1",
+        "especificacao_de_requisitos_de_software": "Especificação de Requisitos de Software"
+    },
+    6: {
+        "paradigmas_de_aprendizagem_de_maquina": "Paradigmas de Aprend. de Máquina",
+        "seguranca_computacional": "Segurança Computacional",
+        "construcao_de_compiladores_1": "Construção de Compiladores 1",
+        "sistemas_distribuidos": "Sistemas Distribuídos",
+        "inovacao_de_base_cientifica_tecnologica_e_empreendedorismo": "Inovação e Empreendedorismo",
+        "metodos_de_projeto_de_software": "Métodos de Projeto de Software"
+    },
+    7: {
+        "sistemas_de_informacao_nas_organizacoes": "Sist. de Informação nas Organizações",
+        "interacao_humano_computador": "Interação Humano-Computador",
+        "engenharia_de_sistemas_distribuidos": "Engenharia de Sistemas Distribuídos",
+        "gerenciamento_de_projeto_de_software": "Gerenciamento de Projeto de Software",
+        "teste_de_software": "Teste de Software"
+    },
+    8: {
+        "computadores_e_sociedade": "Computadores e Sociedade",
+        "estagio_supervisionado": "Estágio Supervisionado"
+    }
 }
+
+disciplinas = {}
+for per in disciplinas_por_periodo.values():
+    disciplinas.update(per)
 
 mapa_inverso = {v: k for k, v in disciplinas.items()}
 
@@ -38,7 +95,7 @@ def encontrar_materia(texto):
     return None
 
 app = ctk.CTk()
-app.geometry("400x300")
+app.geometry("1400x700")
 app.title("Courser Flow")
 
 tabview = ctk.CTkTabview(app)
@@ -50,14 +107,24 @@ tab_sugestoes = tabview.add("Sugestões")
 
 checkboxes = {}
 
-label_cursadas = ctk.CTkLabel(tab_cursadas, text="Selecione as matérias cursadas:")
-label_cursadas.pack(pady=5)
+label_cursadas = ctk.CTkLabel(tab_cursadas, text="Selecione as matérias cursadas:", font=("Arial", 16, "bold"))
+label_cursadas.pack(pady=10)
 
-for chave, nome in disciplinas.items():
-    var = ctk.BooleanVar()
-    cb = ctk.CTkCheckBox(tab_cursadas, text=nome, variable=var)
-    cb.pack(anchor="w", padx=10)
-    checkboxes[chave] = var
+frame_colunas = ctk.CTkScrollableFrame(tab_cursadas, orientation="horizontal")
+frame_colunas.pack(fill="both", expand=True, padx=10, pady=10)
+
+for p, (periodo, disc_periodo) in enumerate(disciplinas_por_periodo.items()):
+    col_frame = ctk.CTkFrame(frame_colunas, fg_color="transparent")
+    col_frame.grid(row=0, column=p, sticky="n", padx=10, pady=5)
+    
+    lbl_periodo = ctk.CTkLabel(col_frame, text=f"{periodo}º Período", font=("Arial", 14, "bold"))
+    lbl_periodo.pack(pady=10)
+    
+    for chave, nome in disc_periodo.items():
+        var = ctk.BooleanVar()
+        cb = ctk.CTkCheckBox(col_frame, text=nome, variable=var, font=("Arial", 12))
+        cb.pack(anchor="w", padx=5, pady=5)
+        checkboxes[chave] = var
 
 
 def get_cursadas():
