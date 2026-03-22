@@ -130,7 +130,11 @@ for p, (periodo, disc_periodo) in enumerate(disciplinas_por_periodo.items()):
 def get_cursadas():
     return [d for d, var in checkboxes.items() if var.get()]
 
-combo = ctk.CTkComboBox(tab_verificar, values=list(disciplinas.values()))
+combo = ctk.CTkComboBox(
+    tab_verificar,
+    values=sorted(disciplinas.values(), key=lambda x: x.lower())
+)
+
 combo.set("")
 combo.pack(pady=10)
 
