@@ -1,17 +1,41 @@
 import customtkinter as ctk
 from pyswip import Prolog
+import unicodedata
 
 prolog = Prolog()
 prolog.consult("regras.pl")
 
-disciplinas = [
-    "calculo1",
-    "calculo2",
-    "calculo3",
-    "programacao1",
-    "estrutura_dados",
-    "ia"
-]
+disciplinas = {
+    "calculo1": "Cálculo 1",
+    "calculo2": "Cálculo 2",
+    "calculo3": "Cálculo 3",
+    "programacao1": "Programação 1",
+    "estrutura_dados": "Estrutura de Dados",
+    "ia": "Inteligência Artificial"
+}
+
+mapa_inverso = {v: k for k, v in disciplinas.items()}
+
+def normalizar(texto):
+    texto = texto.lower()
+
+    texto = ''.join(
+        c for c in unicodedata.normalize('NFD', texto)
+        if unicodedata.category(c) != 'Mn'
+    )
+
+    texto = texto.replace(" ", "")
+    return texto
+
+
+def encontrar_materia(texto):
+    texto_norm = normalizar(texto)
+
+    for chave in disciplinas:
+        if texto_norm == chave:
+            return chave
+
+    return None
 
 app = ctk.CTk()
 app.geometry("400x300")
@@ -29,54 +53,61 @@ checkboxes = {}
 label_cursadas = ctk.CTkLabel(tab_cursadas, text="Selecione as matérias cursadas:")
 label_cursadas.pack(pady=5)
 
-for d in disciplinas:
+for chave, nome in disciplinas.items():
     var = ctk.BooleanVar()
-    cb = ctk.CTkCheckBox(tab_cursadas, text=d, variable=var)
+    cb = ctk.CTkCheckBox(tab_cursadas, text=nome, variable=var)
     cb.pack(anchor="w", padx=10)
-    checkboxes[d] = var
+    checkboxes[chave] = var
 
 
-combo = ctk.CTkComboBox(tab_verificar, values=disciplinas)
-combo.set("Escolha a matéria")
+def get_cursadas():
+    return [d for d, var in checkboxes.items() if var.get()]
+
+combo = ctk.CTkComboBox(tab_verificar, values=list(disciplinas.values()))
+combo.set("")
 combo.pack(pady=10)
 
 label_resultado = ctk.CTkLabel(tab_verificar, text="")
 label_resultado.pack(pady=10)
 
 
-def get_cursadas():
-    return [d for d, var in checkboxes.items() if var.get()]
-
-
 def verificar():
-    materia = combo.get()
+    materia_input = combo.get()
 
-    if materia not in disciplinas:
-        label_resultado.configure(text="Selecione uma matéria válida")
+    # tenta converter direto
+    if materia_input in mapa_inverso:
+        materia = mapa_inverso[materia_input]
+    else:
+        materia = encontrar_materia(materia_input)
+
+    if not materia:
+        label_resultado.configure(text="Matéria inválida")
         return
 
     cursadas = get_cursadas()
     lista = "[" + ",".join(cursadas) + "]"
 
     try:
-        # verifica se pode
         query = f"pode_cursar({materia}, {lista})"
         resultado = list(prolog.query(query))
 
         if resultado:
-            label_resultado.configure(text="✅ Pode cursar")
+            label_resultado.configure(text="Pode cursar")
         else:
-            # verifica o que falta
             query_falta = f"faltam_pre_requisitos({materia}, {lista}, F)"
             resultado_falta = list(prolog.query(query_falta))
 
             if resultado_falta:
                 faltantes = resultado_falta[0]["F"]
+
+                faltantes = [
+                    disciplinas.get(f, f) for f in faltantes
+                ]
+
                 label_resultado.configure(
-                    text=f"❌ Não pode cursar\nFaltam: {faltantes}"
-                )
+                    text="Não pode cursar\nFaltam:\n" + "\n".join(faltantes))
             else:
-                label_resultado.configure(text="❌ Não pode cursar")
+                label_resultado.configure(text="Não pode cursar")
 
     except Exception as e:
         label_resultado.configure(text=f"Erro: {str(e)}")
@@ -85,7 +116,7 @@ def verificar():
 btn = ctk.CTkButton(tab_verificar, text="Verificar", command=verificar)
 btn.pack(pady=10)
 
-label_sugestoes = ctk.CTkLabel(tab_sugestoes, text="Disciplinas que você pode cursar:")
+label_sugestoes = ctk.CTkLabel(tab_sugestoes, text="Disciplinas disponíveis:")
 label_sugestoes.pack(pady=10)
 
 resultado_sugestoes = ctk.CTkLabel(tab_sugestoes, text="")
@@ -103,11 +134,16 @@ def sugerir():
         if resultado:
             possiveis = resultado[0]["X"]
 
-            # remove as já cursadas
             possiveis = [p for p in possiveis if p not in cursadas]
 
             if possiveis:
-                resultado_sugestoes.configure(text="\n".join(possiveis))
+                possiveis_cadeiras = [
+                    disciplinas.get(p, p) for p in possiveis
+                ]
+
+                resultado_sugestoes.configure(
+                    text="\n".join(possiveis_cadeiras)
+                )
             else:
                 resultado_sugestoes.configure(text="Nada disponível")
         else:
