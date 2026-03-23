@@ -135,20 +135,26 @@ pre_req(estagio_supervisionado, engenharia_de_software).
 
 % REGRAS
 
+% Busca todos os pré-requisitos da disciplina.
+
 pode_cursar(Disciplina, Cursadas) :-
     findall(Pre, pre_req(Disciplina, Pre), Pres),
-    subset(Pres, Cursadas).
+    subset(Pres, Cursadas). %  Verifica se todos os pré-requisitos estão dentro da lista de cursadas
+
+% Mostra quais pré-requisitos ainda faltam.
 
 faltam_pre_requisitos(Disciplina, Cursadas, Faltantes) :-
     findall(Pre, pre_req(Disciplina, Pre), Pres),
     subtract(Pres, Cursadas, Faltantes).
+
+% Verifica se uma lista está contida dentro de outra
 
 subset([], _).
 subset([H|T], L) :-
     member(H, L),
     subset(T, L).
 
-% SUGESTÕES
+% SUGESTÕES (Retorna todas as disciplinas que você já pode cursar)
 
 todas_podem(Cursadas, Possiveis) :-
     findall(D,
