@@ -47,10 +47,9 @@ Download do SWI-Prolog: https://www.swi-prolog.org/Download.html
 
 ```bash
 # Clonar o repositório
-git clone https://github.com/seu-usuario/courser-flow.git
-
+git clone https://github.com/Pedroqueiroz2/course-flow.git
 # Entrar na pasta
-cd courser-flow
+cd course-flow
 
 # Criar ambiente virtual
 python -m venv venv
